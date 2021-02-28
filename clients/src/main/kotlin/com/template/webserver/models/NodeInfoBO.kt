@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.ResponseStatus
 
 @ResponseStatus(HttpStatus.OK)
 data class NodeInfoBO(
-        val name: String,
+        val nodeName: String,
         val organisation: String
 ) {
     companion object {
         operator fun get(name: CordaX500Name) = NodeInfoBO(
-                name.commonName ?: "Unknown",
+                name.toString(),
                 name.organisation
         )
     }
