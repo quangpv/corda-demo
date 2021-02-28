@@ -1,21 +1,35 @@
-package com.template.core
+package com.template.core.flows
 
 import co.paralleluniverse.fibers.Suspendable
-import net.corda.core.flows.CollectSignaturesFlow
-import net.corda.core.flows.FinalityFlow
-import net.corda.core.flows.FlowLogic
+import com.template.core.SignedSession
+import com.template.core.SupportServiceHub
+import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
-import net.corda.core.node.services.NetworkMapCache
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
+import net.corda.core.utilities.ProgressTracker
 
-abstract class BaseFlow<T> : FlowLogic<T>() {
+abstract class BaseFlow<out T> : FlowLogic<T>() {
     val services by lazy(LazyThreadSafetyMode.NONE) { SupportServiceHub(serviceHub) }
+    protected open val interceptor: FlowInterceptor = FlowInterceptor.Empty
+
+    fun step(step: ProgressTracker.Step) {
+        progressTracker?.currentStep = step
+    }
 
     fun signByMe(transaction: TransactionBuilder): SignedTransaction {
         return serviceHub.signInitialTransaction(transaction)
     }
+
+    @Suspendable
+    final override fun call(): T {
+        interceptor.intercept(this)
+        return doCall()
+    }
+
+    @Suspendable
+    @Throws(FlowException::class)
+    protected abstract fun doCall(): T
 
     @Suspendable
     fun signBy(signer: Party, transaction: SignedTransaction): SignedSession {
@@ -25,22 +39,13 @@ abstract class BaseFlow<T> : FlowLogic<T>() {
     }
 
     @Suspendable
+    fun signBy(signer: FlowSession, transaction: SignedTransaction): SignedSession {
+        val signed = subFlow(CollectSignaturesFlow(transaction, setOf(signer)))
+        return SignedSession(signer, signed)
+    }
+
+    @Suspendable
     fun signByNotary(signedSession: SignedSession): SignedTransaction {
         return subFlow(FinalityFlow(signedSession.signed, setOf(signedSession.session)))
     }
-}
-
-class SupportServiceHub(private val serviceHub: ServiceHub) {
-
-    val me = MyInfoService(serviceHub)
-    val network = NetworkSupportService(serviceHub.networkMapCache)
-}
-
-class MyInfoService(private val serviceHub: ServiceHub) {
-
-    val legalIdentity get() = serviceHub.myInfo.legalIdentities.single()
-}
-
-class NetworkSupportService(private val networkMapCache: NetworkMapCache) {
-    val defaultNotary get() = networkMapCache.notaryIdentities.single()
 }

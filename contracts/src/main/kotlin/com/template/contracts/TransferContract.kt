@@ -1,7 +1,7 @@
 package com.template.contracts
 
-import com.template.core.CommandVerifiable
-import com.template.core.EnforceContract
+import com.template.core.contracts.CommandVerifiable
+import com.template.core.contracts.VerifyCommandContract
 import com.template.core.throws
 import com.template.states.TransferState
 import net.corda.core.contracts.CommandData
@@ -9,7 +9,7 @@ import net.corda.core.contracts.CommandWithParties
 import net.corda.core.contracts.Contract
 import net.corda.core.transactions.LedgerTransaction
 
-class TransferContract : Contract by EnforceContract {
+class TransferContract : Contract by VerifyCommandContract {
 
     companion object {
         @JvmStatic
