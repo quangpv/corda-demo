@@ -7,7 +7,7 @@ import net.corda.core.flows.ReceiveFinalityFlow
 import net.corda.core.flows.SignTransactionFlow
 import net.corda.core.transactions.SignedTransaction
 
-abstract class ResponderFlow<T> : BaseFlow<T>() {
+abstract class ResponderFlow<out T> : BaseFlow<T>() {
 
     @Suspendable
     fun signTo(session: FlowSession, checkFunc: (SignedTransaction) -> Unit = {}): SignedTransaction {
