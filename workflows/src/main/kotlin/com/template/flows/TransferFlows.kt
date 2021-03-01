@@ -28,13 +28,13 @@ class TransferRequester(
 
     @Suspendable
     override fun doCall(): SignedTransaction {
-        val state = TransferState(value, services.me.legalIdentity, receiver)
+        val state = TransferState(value, services.me.identity, receiver)
         val transaction = TransactionBuilder(services.network.defaultNotary)
                 .addOutputState(state, TransferContract.ID, AlwaysAcceptAttachmentConstraint)
                 .addCommand(TransferContract.Create(), state.publicKeys)
                 .apply { verify(services) }
 
-        return signByNotary(signBy(receiver, signByMe(transaction)))
+        return requestNotarySign(requestSign(receiver, signByMe(transaction)))
     }
 }
 

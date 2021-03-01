@@ -11,7 +11,7 @@ class SupportServiceHub(private val serviceHub: ServiceHub) : ServiceHub by serv
 
 class MyInfoService(private val serviceHub: ServiceHub) {
 
-    val legalIdentity get() = serviceHub.myInfo.legalIdentities.single()
+    val identity get() = serviceHub.myInfo.legalIdentities.single()
 }
 
 class NetworkSupportService(private val networkMapCache: NetworkMapCache) {

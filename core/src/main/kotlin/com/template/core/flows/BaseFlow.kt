@@ -32,20 +32,20 @@ abstract class BaseFlow<out T> : FlowLogic<T>() {
     protected abstract fun doCall(): T
 
     @Suspendable
-    fun signBy(signer: Party, transaction: SignedTransaction): SignedSession {
+    fun requestSign(signer: Party, transaction: SignedTransaction): SignedSession {
         val session = initiateFlow(signer)
         val signed = subFlow(CollectSignaturesFlow(transaction, setOf(session)))
         return SignedSession(session, signed)
     }
 
     @Suspendable
-    fun signBy(signer: FlowSession, transaction: SignedTransaction): SignedSession {
+    fun requestSign(signer: FlowSession, transaction: SignedTransaction): SignedSession {
         val signed = subFlow(CollectSignaturesFlow(transaction, setOf(signer)))
         return SignedSession(signer, signed)
     }
 
     @Suspendable
-    fun signByNotary(signedSession: SignedSession): SignedTransaction {
+    fun requestNotarySign(signedSession: SignedSession): SignedTransaction {
         return subFlow(FinalityFlow(signedSession.signed, setOf(signedSession.session)))
     }
 }
